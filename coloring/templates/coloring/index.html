@@ -59,14 +59,49 @@
 			// you may also add code outside of the function (e.g., global variables)
 			function myGradientInteraction(){
 				var tool = new paper.Tool();
+				var color1;
+				var color2; 
+
+				var stops = [
+				    {
+				        "color": "#2121E5",
+				        "offset": "0%"
+				    },{
+				        "color": "#206DFF",
+				        "offset": "100%"
+				    }
+				];
 
 				tool.onMouseDown = function (event) {
+					var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
+				    if (hit) {
+				  //       hit.item.fillColor = {
+						//     gradient: {
+						//         stops: [['yellow', 0.05], ['red', 0.2], ['black', 1]],
+						//         radial: true
+						//     },
+						// };
+						// hit.item.fillColor = {
+					 //        gradient: {
+					 //            stops: ['yellow', 'red', 'blue']
+					 //        }
+					 //        origin: topLeft,
+					 //        destination: bottomRight
+					 //    }
+					 	hitResult.style.background = 'linear-gradient(${color1}, ${color2})';
+
+				    }
+				    else{
+				    	color1 = cp.history[cp.history.length - 1]
+				    }
 
 				}
 
 				tool.onMouseUp = function (event) {
-					
+					color2 = cp.history[cp.history.length - 1]
 				}
+
+
 			}
 
 			// your custom interaction goes here!
