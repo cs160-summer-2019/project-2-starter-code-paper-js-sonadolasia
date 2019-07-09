@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -18,7 +19,6 @@
 			position: absolute;
 			top: 0;
 		}
-
 		.swatch {
 			width: 24px;
 			height: 24px;
@@ -27,7 +27,6 @@
 			border-radius: 12px;
 			margin: 3px;
 		}
-
 		#myCanvas {
 			padding-left: 0;
 		    padding-right: 0;
@@ -40,75 +39,53 @@
 	<script type="text/javascript" canvas="canvas">
 		window.onload = function() {
 			var canvas = document.getElementById('myCanvas');
-
 			// coloring page
 			var mandala = {
 				item: null,
 				lastClicked: null,
 				filePath: '/static/coloring/images/mandala-freepik.svg'
 			};	
-
 			// color palette
 			var cp = {
 				history: ["#000000"], // black selected by default
 				options: [],
 				$container: $('#color-palette')
 			}
-
+      
+      // mouse up and down locations
+      var upLoc;
+      var downLoc;
 			// your rectangle gradient interaction goes in this function
 			// you may also add code outside of the function (e.g., global variables)
-			function myGradientInteraction(){
-				var tool = new paper.Tool();
-				var color1;
-				var color2; 
-
-				var stops = [
-				    {
-				        "color": "#2121E5",
-				        "offset": "0%"
-				    },{
-				        "color": "#206DFF",
-				        "offset": "100%"
-				    }
-				];
-
+			function myGradientInteraction(){        
+		        var rec = new paper.Rectangle(new paper.Point(0, 0), new paper.Size(300, 200));
+		        rec.center = paper.view.center;
+		        
+		        var rectangle = new paper.Path.Rectangle(rec);
+		        rectangle.fillColor = 'red';
+		        
+		        var tool = new paper.Tool();
 				tool.onMouseDown = function (event) {
-					var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
-				    if (hit) {
-				  //       hit.item.fillColor = {
-						//     gradient: {
-						//         stops: [['yellow', 0.05], ['red', 0.2], ['black', 1]],
-						//         radial: true
-						//     },
-						// };
-						// hit.item.fillColor = {
-					 //        gradient: {
-					 //            stops: ['yellow', 'red', 'blue']
-					 //        }
-					 //        origin: topLeft,
-					 //        destination: bottomRight
-					 //    }
-					 	hitResult.style.background = 'linear-gradient(${color1}, ${color2})';
-
-				    }
-				    else{
-				    	color1 = cp.history[cp.history.length - 1]
-				    }
-
+          			upLoc = event.point;
 				}
-
 				tool.onMouseUp = function (event) {
-					color2 = cp.history[cp.history.length - 1]
+					downLoc = event.point;
+          
+					if (cp.history.length == 1) {
+						rectangle.fillColor = cp.history[cp.history.length - 1];
+					} else {
+						var upColor = cp.history[cp.history.length - 2];
+						var downColor = cp.history[cp.history.length - 1];
+						var gradient = new paper.Gradient([upColor, downColor]);
+						var gradientColor = new paper.Color(gradient, upLoc, downLoc);
+						rectangle.fillColor = gradientColor;
+					}
 				}
-
-
 			}
-
 			// your custom interaction goes here!
 			// you may replace everything
 			function myCustomInteraction() {
 				var tool = new paper.Tool();
-
 				tool.onMouseDown = function (event) {
 				    var hit = mandala.item.hitTest(event.point, { tolerance: 10, fill: true });
 				    if (hit) {
@@ -116,25 +93,21 @@
 				    }
 				}
 			}
-
-
 			// create a color palette with the given colors
-			function createColorPalette(colors){
-
+			function createColorPalette(colors) {
 				// create a swatch for each color
 				for (var i = colors.length - 1; i >= 0; i--) {
 					var $swatch = $("<div>").css("background-color", colors[i])
 									   .addClass("swatch");
-					$swatch.click(function(){
+					$swatch.click(function() {
 						// add color to the color palette history
 					  	cp.history.push($(this).css("background-color"));
 					});
 					cp.$container.append($swatch);
 				}
 			}
-
 			// loads a set of colors from a json to create a color palette
-			function getColorsCreatePalette(){
+			function getColorsCreatePalette() {
 				cp.$container.html(" ");
 				$.getJSON('/static/coloring/vendors/material/material-colors.json', function(colors){
 					var keys = Object.keys(colors);
@@ -144,24 +117,17 @@
 					createColorPalette(cp.options);
 				});
 			}
-
-			function init(custom){
+			function init(custom) {
 				paper.setup(canvas);
 				getColorsCreatePalette();
-
-				paper.project.importSVG(mandala.filePath, function(item) { 
-					mandala.item = item._children["design-freepik"];
-				    paper.project.insertLayer(0,mandala.item);
-
-				    if (custom) {
-				    	myCustomInteraction();	
-				    } else {
-				    	myGradientInteraction();
-				    }		
-					
+				paper.project.importSVG(mandala.filePath, function(item) {
+					    if (custom) {
+					    	myCustomInteraction();	
+					    } else {
+					    	myGradientInteraction();
+					    }			
 				}); 
 			}
-
 			// To see your myGradientInteraction version visit: 
 			// http://<your url>:8000/coloring/?type=gradient
 			// To see your myCustomInteraction version visit: 
